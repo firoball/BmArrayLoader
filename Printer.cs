@@ -12,21 +12,21 @@ namespace BmArrayLoader
         [DllImport("kernel32.dll", EntryPoint = "GetConsoleWindow", SetLastError = true)]
         private static extern IntPtr GetConsoleHandle();
 
-        static public void PrintImage(int width, int height, byte[] indexData, List<byte[]> palette)
+        static public void PrintImage(Indexmap master, List<byte[]> palette, int offsetX, int offsetY)
         {
-            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(width, height);
-            for (int i = 0; i < indexData.Length; i++)
+            Bitmap bitmap = new Bitmap(master.Width, master.Height);
+            for (int i = 0; i < master.Data.Length; i++)
             {
-                int index = indexData[i];
+                int index = master.Data[i];
                 Color color = Color.FromArgb(palette[index][0], palette[index][1], palette[index][2]);
-                bitmap.SetPixel(i % width, i / width, color);
+                bitmap.SetPixel(i % master.Width, i / master.Width, color);
             }
             var handler = GetConsoleHandle();
             using (var graphics = Graphics.FromHwnd(handler))
             {
                 using (bitmap)
                 {
-                    graphics.DrawImage(bitmap, 50, 50, bitmap.Width, bitmap.Height);
+                    graphics.DrawImage(bitmap, offsetX, offsetY, bitmap.Width, bitmap.Height);
                 }
             }
         }

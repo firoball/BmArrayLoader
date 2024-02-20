@@ -14,10 +14,6 @@ namespace BmArrayLoader
         private int m_compressed;
         private int m_offset;
 
-        public int Width { get => m_width; set => m_width = value; } //temp
-        public int Height { get => m_height; set => m_height = value; }//temp
-        public byte[] IndexData { get => m_indexData; set => m_indexData = value; }//temp
-
         public LbmLoader() : base()
         {
             m_offset = 0;
@@ -26,9 +22,14 @@ namespace BmArrayLoader
         public override bool Load(string fileName)
         {
             if (base.Load(fileName))
-                return ReadChunks();
-            else
-                return false;
+            {
+                if (ReadChunks())
+                {
+                    ConfirmReady();
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool ReadChunks()
@@ -120,7 +121,7 @@ namespace BmArrayLoader
 
         private bool ReadBody(int length)
         {
-            m_indexData = new byte[m_width * m_height]; //TODO use bitmap here
+            m_master = new Indexmap(m_width, m_height);
             switch (m_compressed)
             {
                 case (int)LbmCompression.None:
@@ -147,12 +148,12 @@ namespace BmArrayLoader
 
             for (int i = 0; i < length; i++)
             {
-                if (tgtIdx < m_indexData.Length - 1)
+                if (tgtIdx < m_master.Data.Length - 1)
                 {
                     lineIdx = i % (m_width + linePadding);
                     if (lineIdx < m_width)
                     {
-                        m_indexData[tgtIdx++] = ReadByte();
+                        m_master.Data[tgtIdx++] = ReadByte();
                     }
                     else
                         m_offset++; //ignore padding
@@ -179,10 +180,10 @@ namespace BmArrayLoader
                 if (selector < 128)
                 {
                     count = selector + 1;
-                    if ((tgtIdx < m_indexData.Length - count) && (i + 1 < length - count))
+                    if ((tgtIdx < m_master.Data.Length - count) && (i + 1 < length - count))
                     {
                         for (int j = 0; j < count; j++)
-                            m_indexData[tgtIdx++] = ReadByte();
+                            m_master.Data[tgtIdx++] = ReadByte();
                         i += count; //update iterator
                     }
                     else
@@ -194,11 +195,11 @@ namespace BmArrayLoader
                 else if (selector > 128)
                 {
                     count = 257 - selector;
-                    if (tgtIdx < m_indexData.Length - 1)
+                    if (tgtIdx < m_master.Data.Length - 1)
                     {
                         value = ReadByte();
                         for (int j = 0; j < count; j++)
-                            m_indexData[tgtIdx++] = value;
+                            m_master.Data[tgtIdx++] = value;
                         i++; //update iterator
                     }
                     else
@@ -225,7 +226,7 @@ namespace BmArrayLoader
                     rgb[0] = ReadByte(); //R
                     rgb[1] = ReadByte(); //G
                     rgb[2] = ReadByte(); //B
-                    m_paletteData.Add(rgb);
+                    m_palette.Add(rgb);
                 }
                 return true;
             }

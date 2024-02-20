@@ -9,20 +9,24 @@ namespace BmArrayLoader
 {
     abstract class Loader
     {
-        protected bool m_loaded;
-        protected byte[] m_indexData;
-        protected List<byte[]> m_paletteData;
+        protected List<byte[]> m_palette;
         protected byte[] m_bytes;
-        private List<Bitmap> m_bitmaps;
+        protected Indexmap m_master;
 
-        public List<Bitmap> Bitmaps { get => m_bitmaps; }
-        public List<byte[]> Palette { get => m_paletteData; }
+        private bool m_loaded;
+        private bool m_ready;
+        private List<Indexmap> m_tiles;
+
+        public Indexmap Master { get => m_master; }
+        public List<Indexmap> Tiles { get => m_tiles; }
+        public List<byte[]> Palette { get => m_palette; }
 
         public Loader()
         {
-            m_paletteData = new List<byte[]>(256);
-            m_bitmaps = new List<Bitmap>();
+            m_palette = new List<byte[]>(256);
+            m_tiles = new List<Indexmap>();
             m_loaded = false;
+            m_ready = false;
         }
 
         public virtual bool Load(string fileName)
@@ -40,35 +44,44 @@ namespace BmArrayLoader
             return m_loaded;
         }
 
-        public int GetBitmap(int offsetX, int offsetY, int width, int height)
+        public int GetTile(int offsetX, int offsetY, int width, int height)
         {
-            int offsetX0 = offsetX - 1;
-            int offsetY0 = offsetY - 1;
-            int sizeX = offsetX0 + width;
-            int sizeY = offsetY0 + height;
-
-            if (m_loaded &&
-                sizeX > 0 && sizeY > 0 &&
-                width > 0 && height > 0 &&
-                sizeX * sizeY < m_indexData.Length)
+            //Indexmap already in list?
+            int idx = m_tiles.FindIndex(x => x.Equals(offsetX, offsetY, width, height));
+            if (idx == -1)
             {
-                Bitmap bitmap = new Bitmap(8, width, height);
-                int srcIdx = 0;
-                int tgtIdx = 0;
-                for (int x = 0; x < width; x++)
+                //derive newindex map from master
+                int sizeX = offsetX + width;
+                int sizeY = offsetY + height;
+
+                if (m_ready &&
+                    sizeX > 0 && sizeY > 0 &&
+                    width > 0 && height > 0 &&
+                    sizeX * sizeY < m_master.Data.Length)
                 {
+                    Indexmap indexmap = new Indexmap(offsetX, offsetY, width, height);
+                    int srcIdx = 0;
+                    int tgtIdx = 0;
                     for (int y = 0; y < height; y++)
                     {
-                        srcIdx = sizeX * (offsetY0 + y) + offsetX0 + x;
-                        bitmap.Data[tgtIdx] = m_indexData[srcIdx];
-                        tgtIdx++;
+                        for (int x = 0; x < width; x++)
+                        {
+                            srcIdx = m_master.Width * (offsetY + y) + offsetX + x;
+                            indexmap.Data[tgtIdx] = m_master.Data[srcIdx];
+                            tgtIdx++;
+                        }
                     }
+                    m_tiles.Add(indexmap);
+                    idx =  m_tiles.Count - 1;
                 }
-                m_bitmaps.Add(bitmap);
-                return m_bitmaps.Count - 1;
             }
-            else
-                return -1;
+            return idx;
+        }
+
+        protected void ConfirmReady()
+        {
+            m_tiles.Add(m_master);
+            m_ready = true;
         }
     }
 }

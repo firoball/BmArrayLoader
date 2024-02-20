@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bitmap.cs" />
+    <Compile Include="Indexmap.cs" />
     <Compile Include="LbmLoader.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="Printer.cs" />

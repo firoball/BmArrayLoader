@@ -8,11 +8,11 @@ namespace BmArrayLoader
 {
     class Indexmap
     {
-        private int m_offsetX;
-        private int m_offsetY;
-        private int m_width;
-        private int m_height;
-        private byte[] m_data;
+        private readonly int m_offsetX;
+        private readonly int m_offsetY;
+        private readonly int m_width;
+        private readonly int m_height;
+        private readonly byte[] m_data;
 
         public Indexmap(int width, int height) : this(0, 0, width, height) { }
         public Indexmap(int offsetX, int offsetY, int width, int height)

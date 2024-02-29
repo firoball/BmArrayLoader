@@ -46,6 +46,7 @@
     <Compile Include="Indexmap.cs" />
     <Compile Include="LbmLoader.cs" />
     <Compile Include="Loader.cs" />
+    <Compile Include="PcxLoader.cs" />
     <Compile Include="Printer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

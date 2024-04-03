@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BmArrayLoader
 {
-    class PcxLoader : Loader
+    public class PcxLoader : Loader
     {
         private int m_width;
         private int m_height;

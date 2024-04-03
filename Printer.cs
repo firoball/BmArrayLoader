@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace BmArrayLoader
 {
-    static class Printer
+    public static class Printer
     {
         [DllImport("kernel32.dll", EntryPoint = "GetConsoleWindow", SetLastError = true)]
         private static extern IntPtr GetConsoleHandle();

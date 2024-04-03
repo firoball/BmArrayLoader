@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BmArrayLoader
 {
-    abstract class Loader
+    public abstract class Loader
     {
         protected List<byte[]> m_palette;
         protected byte[] m_bytes;

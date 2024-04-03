@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BmArrayLoader
 {
-    class Indexmap
+    public class Indexmap
     {
         private readonly int m_offsetX;
         private readonly int m_offsetY;

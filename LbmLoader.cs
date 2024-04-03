@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BmArrayLoader
 {
-    class LbmLoader : Loader
+    public class LbmLoader : Loader
     {
         private int m_width;
         private int m_height;

@@ -8,3 +8,11 @@ Formats:
 - PCX (Version 5 only)
 
 This is an early WIP.
+
+## Legal stuff
+
+Please respect [license.txt](license.txt) (Attribution-NonCommercial 4.0 International)
+
+-firoball
+
+[https://firoball.de](https://firoball.de)

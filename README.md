@@ -4,6 +4,6 @@ It is aimed for loading indexed files with palettes only and targeted for a pret
 
 Formats:
 LBM (PBM only)
-PCX (yet to be implemented)
+PCX (Version 5 only)
 
-This is a very early WIP and therefore not yet cleaned up or even complete.
+This is an early WIP.

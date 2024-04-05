@@ -34,49 +34,59 @@ namespace BmArrayLoader
 
         private bool ReadChunks()
         {
-            bool status;
-            do
+            bool status = false;
+            bool first = true;
+            if (m_bytes.Length > 8)
             {
-                int chunkId = ReadInt32();
-                int length = ReadInt32();
-                int padding = length % 2;
-                if (m_offset + length + padding <= m_bytes.Length)
+                do
                 {
-                    switch (chunkId)
+                    int chunkId = ReadInt32();
+                    if (first && chunkId != (int)LbmChunk.FORM) //first chunk must be FORM
                     {
-                        case (int)LbmChunk.FORM:
-                            status = ReadForm(length);
-                            //FORM is container for all other chunks, therefore don't apply padding here - it is at eof
-                            break;
-
-                        case (int)LbmChunk.BMHD:
-                            status = ReadHeader(length);
-                            m_offset += padding;
-                            break;
-
-                        case (int)LbmChunk.CMAP:
-                            status = ReadColormap(length);
-                            m_offset += padding;
-                            break;
-
-                        case (int)LbmChunk.BODY:
-                            status = ReadBody(length);
-                            m_offset += padding;
-                            //BODY is optional - file might only contain color palette
-                            break;
-
-                        default:
-                            status = SkipChunk(length);
-                            m_offset += padding;
-                            break;
+                        Console.WriteLine("LbmLoader ERROR: Unsupported image format found.");
+                        return false;
                     }
-                }
-                else
-                {
-                    Console.WriteLine("LbmLoader ERROR: Truncated chunk found.");
-                    status = false;
-                }
-            } while (status && (m_bytes.Length - m_offset > 4)); //make sure padding byte does not start another iteration
+                    first = false;
+                    int length = ReadInt32();
+                    int padding = length % 2;
+                    if (m_offset + length + padding <= m_bytes.Length)
+                    {
+                        switch (chunkId)
+                        {
+                            case (int)LbmChunk.FORM:
+                                status = ReadForm(length);
+                                //FORM is container for all other chunks, therefore don't apply padding here - it is at eof
+                                break;
+
+                            case (int)LbmChunk.BMHD:
+                                status = ReadHeader(length);
+                                m_offset += padding;
+                                break;
+
+                            case (int)LbmChunk.CMAP:
+                                status = ReadColormap(length);
+                                m_offset += padding;
+                                break;
+
+                            case (int)LbmChunk.BODY:
+                                status = ReadBody(length);
+                                m_offset += padding;
+                                //BODY is optional - file might only contain color palette
+                                break;
+
+                            default:
+                                status = SkipChunk(length);
+                                m_offset += padding;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("LbmLoader ERROR: Truncated chunk found.");
+                        status = false;
+                    }
+                } while (status && (m_bytes.Length - m_offset > 4)); //make sure padding byte does not start another iteration
+            }
 
             return status;
         }

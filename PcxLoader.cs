@@ -9,6 +9,7 @@ namespace BmArrayLoader
     public class PcxLoader : Loader
     {
         private int m_width;
+        private int m_bytesPerLine;
         private int m_height;
         private int m_offset;
 
@@ -51,7 +52,7 @@ namespace BmArrayLoader
                     m_offset += 48; //skip 16 color palette
                     m_offset++; //skip reserved
                     byte planes = ReadByte();
-                    m_offset += 2; //skip plane line info
+                    m_bytesPerLine = ReadInt16(); //padded image width
                     m_offset += 2; //skip palette info
                     m_offset += 4; //skip scrolling info
                     m_offset += 54; //skip padding
@@ -80,19 +81,23 @@ namespace BmArrayLoader
         {
             m_master = new Indexmap(m_width, m_height);
             int tgtIdx = 0;
+            int paddedIdx = 0;
+            int paddedSize = m_height * m_bytesPerLine;
             byte value;
-            while (tgtIdx < m_master.Data.Length)
+            while (paddedIdx < paddedSize)
             {
                 byte selector = ReadByte();
                 if (selector > 192)
                 {
                     int count = selector & 0x3F;
                     value = ReadByte();
-                    if (tgtIdx + count - 1 < m_master.Data.Length)
+                    if (paddedIdx + count - 1 < paddedSize)
                     {
                         for (int i = 0; i < count; i++)
                         {
-                            m_master.Data[tgtIdx++] = value;
+                            if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_master.Data.Length) //don't copy padding
+                                m_master.Data[tgtIdx++] = value;
+                            paddedIdx++;
                         }
                     }
                     else
@@ -103,7 +108,9 @@ namespace BmArrayLoader
                 }
                 else
                 {
-                    m_master.Data[tgtIdx++] = selector;
+                    if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_master.Data.Length) //don't copy padding
+                        m_master.Data[tgtIdx++] = selector;
+                    paddedIdx++;
                 }
             }
             return ReadPalette();

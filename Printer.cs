@@ -1,19 +1,23 @@
-﻿using System;
+﻿//#define DEBUG_CONSOLE
 using System.Collections.Generic;
-using System.Linq;
+#if DEBUG_CONSOLE
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Drawing;
+#endif
 
 namespace BmArrayLoader
 {
     public static class Printer
     {
+#if DEBUG_CONSOLE
         [DllImport("kernel32.dll", EntryPoint = "GetConsoleWindow", SetLastError = true)]
         private static extern IntPtr GetConsoleHandle();
+#endif
 
         static public void PrintImage(Indexmap master, List<byte[]> palette, int offsetX, int offsetY)
         {
+#if DEBUG_CONSOLE
             Bitmap bitmap = new Bitmap(master.Width, master.Height);
             for (int i = 0; i < master.Data.Length; i++)
             {
@@ -29,6 +33,7 @@ namespace BmArrayLoader
                     graphics.DrawImage(bitmap, offsetX, offsetY, bitmap.Width, bitmap.Height);
                 }
             }
+#endif
         }
     }
 }

@@ -11,12 +11,15 @@ namespace BmArrayLoader
 
         public LbmLoader() : base()
         {
+            m_pattern = new byte [] { 0x46, 0x4F, 0x52, 0x4D, 0x0 }; //LbmChunk.FORM
+            m_type = "LBM";
             m_offset = 0;
         }
 
-        public override bool Load(string fileName)
+        public override bool Load(string fileName, out Tileset tileset)
         {
-            if (base.Load(fileName))
+            tileset = null;
+            if (base.Load(fileName, out tileset))
             {
                 if (ReadChunks())
                 {
@@ -126,7 +129,7 @@ namespace BmArrayLoader
 
         private bool ReadBody(int length)
         {
-            m_master = new Indexmap(m_width, m_height);
+            m_tileset.InitMaster(m_width, m_height);
             switch (m_compressed)
             {
                 case (int)LbmCompression.None:
@@ -153,12 +156,12 @@ namespace BmArrayLoader
 
             for (int i = 0; i < length; i++)
             {
-                if (tgtIdx < m_master.Data.Length - 1)
+                if (tgtIdx < m_tileset.Master.Data.Length - 1)
                 {
                     lineIdx = i % (m_width + linePadding);
                     if (lineIdx < m_width)
                     {
-                        m_master.Data[tgtIdx++] = ReadByte();
+                        m_tileset.Master.Data[tgtIdx++] = ReadByte();
                     }
                     else
                         m_offset++; //ignore padding
@@ -185,10 +188,10 @@ namespace BmArrayLoader
                 if (selector < 128)
                 {
                     count = selector + 1;
-                    if ((tgtIdx < m_master.Data.Length - count) && (i + 1 < length - count))
+                    if ((tgtIdx < m_tileset.Master.Data.Length - count) && (i + 1 < length - count))
                     {
                         for (int j = 0; j < count; j++)
-                            m_master.Data[tgtIdx++] = ReadByte();
+                            m_tileset.Master.Data[tgtIdx++] = ReadByte();
                         i += count; //update iterator
                     }
                     else
@@ -200,11 +203,11 @@ namespace BmArrayLoader
                 else if (selector > 128)
                 {
                     count = 257 - selector;
-                    if (tgtIdx < m_master.Data.Length - 1)
+                    if (tgtIdx < m_tileset.Master.Data.Length - 1)
                     {
                         value = ReadByte();
                         for (int j = 0; j < count; j++)
-                            m_master.Data[tgtIdx++] = value;
+                            m_tileset.Master.Data[tgtIdx++] = value;
                         i++; //update iterator
                     }
                     else
@@ -225,13 +228,14 @@ namespace BmArrayLoader
         {
             if (length % 3 == 0)
             {
+                int palIdx = 0;
                 for (int i = length; i > 0; i -= 3)
                 {
                     byte[] rgb = new byte[3];
                     rgb[0] = ReadByte(); //R
                     rgb[1] = ReadByte(); //G
                     rgb[2] = ReadByte(); //B
-                    m_palette.Add(rgb);
+                    m_tileset.Palette[palIdx++] = rgb;
                 }
                 return true;
             }

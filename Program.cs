@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace BmArrayLoader
 {
@@ -6,31 +7,44 @@ namespace BmArrayLoader
     {
         static void Main(string[] args)
         {
-            Loader loader;
-            loader = new LbmLoader();
+            LoaderSelector ls = new LoaderSelector();
+            ls.RegisterLoader(new PcxLoader());
+            ls.RegisterLoader(new LbmLoader());
+
             char sl = Path.DirectorySeparatorChar;
-            if (loader.Load(@".."+sl+".."+sl+"bitmaps"+sl+"michels.lbm"))
+
+            Loader loader;
+            Tileset tileset;
+            string file;
+
+            file = ".." + sl + ".." + sl + "bitmaps" + sl + "michels.lbm";
+            loader = ls.GetLoader(file);
+            if (loader.Load(file, out tileset))
             {
-                Printer.PrintImage(loader.Master, loader.Palette);
+                Console.WriteLine("Load file of type " + loader.GetType() + ": "+ file);
+                Printer.PrintImage(tileset.Master, tileset.Palette);
                 int tileIdx;
-                tileIdx = loader.GetTile(520, 72, 110, 120);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
-                tileIdx = loader.GetTile(64, 192, 64, 64);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
-                tileIdx = loader.GetTile(64, 192, 64, 64);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
+                tileIdx = tileset.GetTile(520, 72, 110, 120);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
+                tileIdx = tileset.GetTile(64, 192, 64, 64);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
+                tileIdx = tileset.GetTile(64, 192, 64, 64);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
             }
-            loader = new PcxLoader();
-            if (loader.Load(@".."+sl+".."+sl+"bitmaps"+sl+"floortex.pcx"))
+            
+            file = ".." + sl + ".." + sl + "bitmaps" + sl + "floortex.pcx";
+            loader = ls.GetLoader(file);
+            if (loader.Load(file, out tileset))
             {
-                Printer.PrintImage(loader.Master, loader.Palette);
+                Console.WriteLine("Load file of type " + loader.GetType() + ": "+ file);
+                Printer.PrintImage(tileset.Master, tileset.Palette);
                 int tileIdx;
-                tileIdx = loader.GetTile(0, 0, 64, 64);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
-                tileIdx = loader.GetTile(64, 64, 64, 64);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
-                tileIdx = loader.GetTile(128, 0, 64, 64);
-                Printer.PrintImage(loader.Tiles[tileIdx], loader.Palette);
+                tileIdx = tileset.GetTile(0, 0, 64, 64);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
+                tileIdx = tileset.GetTile(64, 64, 64, 64);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
+                tileIdx = tileset.GetTile(128, 0, 64, 64);
+                Printer.PrintImage(tileset.Tiles[tileIdx], tileset.Palette);
             }
         }
     }

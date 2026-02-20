@@ -6,32 +6,30 @@ namespace BmArrayLoader
 {
     public abstract class Loader
     {
-        protected List<byte[]> m_palette;
+        protected byte[] m_pattern;
+        protected string m_type;
         protected byte[] m_bytes;
-        protected Indexmap m_master;
-
+        protected Tileset m_tileset;
+        
         private bool m_loaded;
         private bool m_ready;
-        private List<Indexmap> m_tiles;
-
-        public Indexmap Master { get => m_master; }
-        public List<Indexmap> Tiles { get => m_tiles; }
-        public List<byte[]> Palette { get => m_palette; }
 
         public Loader()
         {
-            m_palette = new List<byte[]>(256);
-            m_tiles = new List<Indexmap>();
+            m_type = string.Empty;
             m_loaded = false;
             m_ready = false;
         }
 
-        public virtual bool Load(string fileName)
+        public virtual bool Load(string fileName, out Tileset tileset)
         {
+            tileset = null;
             try
             {
                 m_bytes = File.ReadAllBytes(fileName);
                 m_loaded = true;
+                m_tileset = new Tileset();
+                tileset = m_tileset;
             }
             catch
             {
@@ -41,44 +39,36 @@ namespace BmArrayLoader
             return m_loaded;
         }
 
-        public int GetTile(int offsetX, int offsetY, int width, int height)
+        public bool Accepts(string fileName)
         {
-            //Indexmap already in list?
-            int idx = m_tiles.FindIndex(x => x.Equals(offsetX, offsetY, width, height));
-            if (idx == -1)
-            {
-                //derive newindex map from master
-                int sizeX = offsetX + width;
-                int sizeY = offsetY + height;
+            bool retval = false;
 
-                if (m_ready &&
-                    sizeX > 0 && sizeY > 0 &&
-                    width > 0 && height > 0 &&
-                    sizeX * sizeY < m_master.Data.Length)
+            if (m_pattern == null)
+                return retval;
+            
+            byte[] block = new byte[m_pattern.Length];
+            using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                int bytes = stream.Read(block, 0, m_pattern.Length);
+                if (bytes == m_pattern.Length & block.SequenceEqual(m_pattern))
                 {
-                    Indexmap indexmap = new Indexmap(offsetX, offsetY, width, height);
-                    int srcIdx = 0;
-                    int tgtIdx = 0;
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            srcIdx = m_master.Width * (offsetY + y) + offsetX + x;
-                            indexmap.Data[tgtIdx] = m_master.Data[srcIdx];
-                            tgtIdx++;
-                        }
-                    }
-                    m_tiles.Add(indexmap);
-                    idx =  m_tiles.Count - 1;
+                    retval = true;
                 }
+                stream.Close();
             }
-            return idx;
+
+            return retval;
         }
 
+        public string GetType()
+        {
+            return m_type;
+        }
+        
         protected void ConfirmReady()
         {
-            m_tiles.Add(m_master);
             m_ready = true;
         }
+
     }
 }

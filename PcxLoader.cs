@@ -15,12 +15,15 @@ namespace BmArrayLoader
 
         public PcxLoader() : base()
         {
+            m_pattern = new byte [] { c_manufacturer, c_version };
+            m_type = "PCX";
             m_offset = 0;
         }
 
-        public override bool Load(string fileName)
+        public override bool Load(string fileName, out Tileset tileset)
         {
-            if (base.Load(fileName))
+            tileset = null;
+            if (base.Load(fileName, out tileset))
             {
                 if (ReadHeader())
                 {
@@ -75,7 +78,7 @@ namespace BmArrayLoader
 
         private bool ReadBody()
         {
-            m_master = new Indexmap(m_width, m_height);
+            m_tileset.InitMaster(m_width, m_height);
             int tgtIdx = 0;
             int paddedIdx = 0;
             int paddedSize = m_height * m_bytesPerLine;
@@ -91,8 +94,8 @@ namespace BmArrayLoader
                     {
                         for (int i = 0; i < count; i++)
                         {
-                            if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_master.Data.Length) //don't copy padding
-                                m_master.Data[tgtIdx++] = value;
+                            if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Data.Length) //don't copy padding
+                                m_tileset.Master.Data[tgtIdx++] = value;
                             paddedIdx++;
                         }
                     }
@@ -104,8 +107,8 @@ namespace BmArrayLoader
                 }
                 else
                 {
-                    if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_master.Data.Length) //don't copy padding
-                        m_master.Data[tgtIdx++] = selector;
+                    if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Data.Length) //don't copy padding
+                        m_tileset.Master.Data[tgtIdx++] = selector;
                     paddedIdx++;
                 }
             }
@@ -119,13 +122,14 @@ namespace BmArrayLoader
             {
                 if (ReadByte() == c_palette)
                 {
+                    int palIdx = 0;
                     for (int i = length; i > 0; i -= 3)
                     {
                         byte[] rgb = new byte[3];
                         rgb[0] = ReadByte(); //R
                         rgb[1] = ReadByte(); //G
                         rgb[2] = ReadByte(); //B
-                        m_palette.Add(rgb);
+                        m_tileset.Palette[palIdx++] = rgb;
                     }
                     return true;
                 }

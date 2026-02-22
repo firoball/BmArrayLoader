@@ -20,18 +20,9 @@ namespace BmArrayLoader
             m_offset = 0;
         }
 
-        public override bool Load(string fileName, out Tileset tileset)
+        protected override bool LoadInternal()
         {
-            tileset = null;
-            if (base.Load(fileName, out tileset))
-            {
-                if (ReadHeader())
-                {
-                    ConfirmReady();
-                    return true;
-                }
-            }
-            return false;
+            return ReadHeader();
         }
 
         private bool ReadHeader()
@@ -94,8 +85,8 @@ namespace BmArrayLoader
                     {
                         for (int i = 0; i < count; i++)
                         {
-                            if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Data.Length) //don't copy padding
-                                m_tileset.Master.Data[tgtIdx++] = value;
+                            if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Size) //don't copy padding
+                                m_tileset.Master[tgtIdx++] = value;
                             paddedIdx++;
                         }
                     }
@@ -107,8 +98,8 @@ namespace BmArrayLoader
                 }
                 else
                 {
-                    if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Data.Length) //don't copy padding
-                        m_tileset.Master.Data[tgtIdx++] = selector;
+                    if (paddedIdx % m_bytesPerLine < m_width && tgtIdx < m_tileset.Master.Size) //don't copy padding
+                        m_tileset.Master[tgtIdx++] = selector;
                     paddedIdx++;
                 }
             }
@@ -125,11 +116,10 @@ namespace BmArrayLoader
                     int palIdx = 0;
                     for (int i = length; i > 0; i -= 3)
                     {
-                        byte[] rgb = new byte[3];
-                        rgb[0] = ReadByte(); //R
-                        rgb[1] = ReadByte(); //G
-                        rgb[2] = ReadByte(); //B
-                        m_tileset.Palette[palIdx++] = rgb;
+                        m_tileset.Palette[palIdx][0] = ReadByte(); //R
+                        m_tileset.Palette[palIdx][1] = ReadByte(); //G
+                        m_tileset.Palette[palIdx][2] = ReadByte(); //B
+                        palIdx++;
                     }
                     return true;
                 }

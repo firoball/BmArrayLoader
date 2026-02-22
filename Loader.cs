@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace BmArrayLoader
@@ -11,32 +10,28 @@ namespace BmArrayLoader
         protected byte[] m_bytes;
         protected Tileset m_tileset;
         
-        private bool m_loaded;
-        private bool m_ready;
-
         public Loader()
         {
             m_type = string.Empty;
-            m_loaded = false;
-            m_ready = false;
         }
 
-        public virtual bool Load(string fileName, out Tileset tileset)
+        public bool Load(string fileName, out Tileset tileset)
         {
-            tileset = null;
+            bool loaded;
             try
             {
                 m_bytes = File.ReadAllBytes(fileName);
-                m_loaded = true;
                 m_tileset = new Tileset();
-                tileset = m_tileset;
+                loaded = LoadInternal();
             }
             catch
             {
-                m_loaded = false;
+                loaded = false;
                 Console.WriteLine("Loader ERROR: Loading " + fileName + " failed!");
             }
-            return m_loaded;
+            tileset = loaded ? m_tileset : null;
+            
+            return loaded;
         }
 
         public bool Accepts(string fileName)
@@ -47,28 +42,33 @@ namespace BmArrayLoader
                 return retval;
             
             byte[] block = new byte[m_pattern.Length];
-            using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            try
             {
-                int bytes = stream.Read(block, 0, m_pattern.Length);
-                if (bytes == m_pattern.Length & block.SequenceEqual(m_pattern))
+                using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
                 {
-                    retval = true;
+                    int bytes = stream.Read(block, 0, m_pattern.Length);
+                    if (bytes == m_pattern.Length & block.SequenceEqual(m_pattern))
+                        retval = true;
+                    stream.Close();
                 }
-                stream.Close();
             }
-
+            catch
+            {
+                retval = false; //can't open file, therefore is unsupported anyway - don't throw anything at user
+            } 
+ 
             return retval;
         }
 
-        public string GetType()
+        public string GetFileType()
         {
             return m_type;
         }
-        
-        protected void ConfirmReady()
-        {
-            m_ready = true;
-        }
 
+        protected virtual bool LoadInternal()
+        {
+            Console.WriteLine("Loader ERROR: internal load routine not implemented");
+            return false;
+        }
     }
 }

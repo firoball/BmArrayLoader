@@ -11,23 +11,14 @@ namespace BmArrayLoader
 
         public LbmLoader() : base()
         {
-            m_pattern = new byte [] { 0x46, 0x4F, 0x52, 0x4D, 0x0 }; //LbmChunk.FORM
+            m_pattern = new byte [] { 0x46, 0x4F, 0x52, 0x4D, 0x0 }; //LbmChunk.Form
             m_type = "LBM";
             m_offset = 0;
         }
 
-        public override bool Load(string fileName, out Tileset tileset)
+        protected override bool LoadInternal()
         {
-            tileset = null;
-            if (base.Load(fileName, out tileset))
-            {
-                if (ReadChunks())
-                {
-                    ConfirmReady();
-                    return true;
-                }
-            }
-            return false;
+            return ReadChunks();
         }
 
         private bool ReadChunks()
@@ -39,7 +30,7 @@ namespace BmArrayLoader
                 do
                 {
                     int chunkId = ReadInt32();
-                    if (first && chunkId != (int)LbmChunk.FORM) //first chunk must be FORM
+                    if (first && chunkId != (int)LbmChunk.Form) //first chunk must be FORM
                     {
                         Console.WriteLine("LbmLoader ERROR: Unsupported image format found.");
                         return false;
@@ -51,22 +42,22 @@ namespace BmArrayLoader
                     {
                         switch (chunkId)
                         {
-                            case (int)LbmChunk.FORM:
+                            case (int)LbmChunk.Form:
                                 status = ReadForm(length);
                                 //FORM is container for all other chunks, therefore don't apply padding here - it is at eof
                                 break;
 
-                            case (int)LbmChunk.BMHD:
+                            case (int)LbmChunk.Bmhd:
                                 status = ReadHeader(length);
                                 m_offset += padding;
                                 break;
 
-                            case (int)LbmChunk.CMAP:
+                            case (int)LbmChunk.Cmap:
                                 status = ReadColormap(length);
                                 m_offset += padding;
                                 break;
 
-                            case (int)LbmChunk.BODY:
+                            case (int)LbmChunk.Body:
                                 status = ReadBody(length);
                                 m_offset += padding;
                                 //BODY is optional - file might only contain color palette
@@ -94,10 +85,10 @@ namespace BmArrayLoader
             int type = ReadInt32();
             switch (type)
             {
-                case (int)LbmType.PBM:
+                case (int)LbmType.Pbm:
                     return true;
 
-                case (int)LbmType.ILBM:
+                case (int)LbmType.Ilbm:
                     Console.WriteLine("LbmLoader ERROR: ILBM format not supported.");
                     return false;
 
@@ -156,12 +147,12 @@ namespace BmArrayLoader
 
             for (int i = 0; i < length; i++)
             {
-                if (tgtIdx < m_tileset.Master.Data.Length - 1)
+                if (tgtIdx < m_tileset.Master.Size - 1)
                 {
                     lineIdx = i % (m_width + linePadding);
                     if (lineIdx < m_width)
                     {
-                        m_tileset.Master.Data[tgtIdx++] = ReadByte();
+                        m_tileset.Master[tgtIdx++] = ReadByte();
                     }
                     else
                         m_offset++; //ignore padding
@@ -188,10 +179,10 @@ namespace BmArrayLoader
                 if (selector < 128)
                 {
                     count = selector + 1;
-                    if ((tgtIdx < m_tileset.Master.Data.Length - count) && (i + 1 < length - count))
+                    if ((tgtIdx < m_tileset.Master.Size - count) && (i + 1 < length - count))
                     {
                         for (int j = 0; j < count; j++)
-                            m_tileset.Master.Data[tgtIdx++] = ReadByte();
+                            m_tileset.Master[tgtIdx++] = ReadByte();
                         i += count; //update iterator
                     }
                     else
@@ -203,11 +194,11 @@ namespace BmArrayLoader
                 else if (selector > 128)
                 {
                     count = 257 - selector;
-                    if (tgtIdx < m_tileset.Master.Data.Length - 1)
+                    if (tgtIdx < m_tileset.Master.Size - 1)
                     {
                         value = ReadByte();
                         for (int j = 0; j < count; j++)
-                            m_tileset.Master.Data[tgtIdx++] = value;
+                            m_tileset.Master[tgtIdx++] = value;
                         i++; //update iterator
                     }
                     else
@@ -231,11 +222,10 @@ namespace BmArrayLoader
                 int palIdx = 0;
                 for (int i = length; i > 0; i -= 3)
                 {
-                    byte[] rgb = new byte[3];
-                    rgb[0] = ReadByte(); //R
-                    rgb[1] = ReadByte(); //G
-                    rgb[2] = ReadByte(); //B
-                    m_tileset.Palette[palIdx++] = rgb;
+                    m_tileset.Palette[palIdx][0] = ReadByte(); //R
+                    m_tileset.Palette[palIdx][1] = ReadByte(); //G
+                    m_tileset.Palette[palIdx][2] = ReadByte(); //B
+                    palIdx++;
                 }
                 return true;
             }
@@ -272,8 +262,8 @@ namespace BmArrayLoader
 
         private enum LbmType : int
         {
-            ILBM = 0x494C424D,
-            PBM = 0x50424D20,
+            Ilbm = 0x494C424D,
+            Pbm = 0x50424D20,
         }
 
         private enum LbmCompression : int
@@ -284,10 +274,10 @@ namespace BmArrayLoader
 
         private enum LbmChunk : int
         {
-            FORM = 0x464F524D,
-            BMHD = 0x424D4844,
-            BODY = 0x424F4459,
-            CMAP = 0x434D4150,
+            Form = 0x464F524D,
+            Bmhd = 0x424D4844,
+            Body = 0x424F4459,
+            Cmap = 0x434D4150,
         }
     }
 }

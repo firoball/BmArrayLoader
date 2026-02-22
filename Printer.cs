@@ -10,18 +10,18 @@ namespace BmArrayLoader
     public static class Printer
     {
 
-        public static void PrintImage(Indexmap master, List<byte[]> palette)
+        public static void PrintImage(Indexmap master, IList<byte[]> palette)
         {
 #if DEBUG_CONSOLE
             Console.OutputEncoding = Encoding.UTF8;
-            for (int i = 0; i < master.Data.Length; i++)
+            for (int i = 0; i < master.Size; i++)
             {
-                int index = master.Data[i];
+                int index = master[i];
                 int x = i % master.Width;
-                if (x < Console.BufferWidth)
+                if (x < Console.BufferWidth / 2)
                 {
                     string color = GetAnsiColor(palette[index][0], palette[index][1], palette[index][2]);
-                    Console.Write(color + "█");
+                    Console.Write(color + "██");
                 }
                 if (x== master.Width - 1) Console.Write("\x1b[0m\n");
             }

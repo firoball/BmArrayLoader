@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BmArrayLoader
+﻿namespace BmArrayLoader
 {
     public class Indexmap
     {
@@ -15,6 +9,7 @@ namespace BmArrayLoader
         private readonly byte[] m_data;
 
         public Indexmap(int width, int height) : this(0, 0, width, height) { }
+        
         public Indexmap(int offsetX, int offsetY, int width, int height)
         {
             m_offsetX = offsetX;
@@ -24,9 +19,25 @@ namespace BmArrayLoader
             m_data = new byte[width * height];
         }
 
+        public byte this[int i]
+        {
+            get => (i >= 0 && i < m_data.Length) ? m_data[i] : (byte)0;
+            set
+            {
+                if (i >= 0 && i < m_data.Length)
+                    m_data[i] = value;
+            }
+        }
+        
+        public byte this[int x, int y]
+        {
+            get => this[y * m_width + x];
+            set => this[y * m_width + x] = value;
+        }
+        
         public int Width { get => m_width; }
         public int Height { get => m_height; }
-        public byte[] Data { get => m_data; }
+        public int Size { get => m_data.Length; }
 
         public bool Equals(int offsetX, int offsetY, int width, int height)
         {
